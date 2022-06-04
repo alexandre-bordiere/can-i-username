@@ -20,7 +20,7 @@ class IntegrationController extends Controller
     /**
      * Check if a given username is avaiable for a given integration.
      *
-     * @param  Integration $integration
+     * @param  Integration  $integration
      * @param  Request  $request
      * @return \Illuminate\Http\Response
      */
