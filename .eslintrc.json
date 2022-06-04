@@ -1,0 +1,60 @@
+{
+  "root": true,
+  "env": {
+    "es2022": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:vue/vue3-recommended"
+  ],
+  "overrides": [
+    {
+      "files": ["*.vue"],
+      "rules": {
+        "indent": "off"
+      }
+    }
+  ],
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "rules": {
+    "arrow-parens": [
+      "error",
+      "as-needed"
+    ],
+    "arrow-spacing": "error",
+    "eol-last": [
+      "error",
+      "always"
+    ],
+    "indent": [
+      "error",
+      2
+    ],
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "semi": [
+      "error",
+      "never"
+    ],
+    "vue/html-indent": [
+      "error",
+      2,
+      {
+        "baseIndent": 1
+      }
+    ],
+    "vue/multi-word-component-names": "off",
+    "vue/script-indent": [
+      "error",
+      2,
+      {
+        "baseIndent": 1
+      }
+    ]
+  }
+}
