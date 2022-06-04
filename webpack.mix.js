@@ -21,4 +21,5 @@ mix.disableNotifications()
     require('autoprefixer'),
     require('tailwindcss'),
   ])
+  .version()
   .vue()
