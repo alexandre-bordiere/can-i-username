@@ -10,7 +10,7 @@ class Twitter extends Integration
      * Check if the given username is available for this integration.
      *
      * @param  string  $username
-     * @return boolean
+     * @return bool
      */
     public function isUsernameAvailable(string $username): bool
     {
