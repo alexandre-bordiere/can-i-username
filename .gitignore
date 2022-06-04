@@ -1,0 +1,9 @@
+/.idea
+/.vscode
+/node_modules
+/vendor
+
+.DS_Store
+.env
+.phpunit.result.cache
+npm-debug.log
