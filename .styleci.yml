@@ -1,5 +1,4 @@
-php:
-  preset: laravel
-  finder:
-    not-name:
-      - index.php
+preset: laravel
+finder:
+  not-name:
+    - index.php
