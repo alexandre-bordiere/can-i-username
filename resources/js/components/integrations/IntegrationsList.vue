@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="space-y-2">
     <IntegrationsListItem
       v-for="integration in integrations"
       :key="integration"
