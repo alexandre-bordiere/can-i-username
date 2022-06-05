@@ -40,7 +40,7 @@ class Twitch extends Integration
      */
     public function isUsernameAvailable(string $username): bool
     {
-        if (!Cache::has('twitchToken')) {
+        if (! Cache::has('twitchToken')) {
             $accessToken = json_decode(
                 $this->twitchApi
                     ->getOauthApi()
