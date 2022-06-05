@@ -28,11 +28,11 @@
       try {
         state.value = 'loading'
 
-        await axios.get(`/integrations/${props.integration}/is-username-available`, {
+        const { data } = await axios.get(`/integrations/${props.integration}/is-username-available`, {
           params: { username },
         })
 
-        state.value = 'success'
+        state.value = data.isUsernameAvailable ? 'success' : 'error'
       } catch (e) {
         state.value = 'error'
       }

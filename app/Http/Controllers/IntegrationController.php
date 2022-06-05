@@ -3,10 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Integration;
+use App\Integrations\IntegrationFactory;
 use Illuminate\Http\Request;
 
 class IntegrationController extends Controller
 {
+    /**
+     * The factory to create a new integration instance.
+     *
+     * @var IntegrationFactory
+     */
+    protected IntegrationFactory $integrationFactory;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct(IntegrationFactory $integrationFactory)
+    {
+        $this->integrationFactory = $integrationFactory;
+    }
+
     /**
      * Display a listing of integrations.
      *
@@ -26,10 +44,14 @@ class IntegrationController extends Controller
      */
     public function isUsernameAvailable(Integration $integration, Request $request)
     {
-        $isUsernameAvailable = $integration->build()->isUsernameAvailable(
-            $request->input('username')
-        );
+        $isUsernameAvailable = $this->integrationFactory
+            ->build($integration)
+            ->isUsernameAvailable(
+                $request->input('username')
+            );
 
-        return response('', $isUsernameAvailable ? 204 : 422);
+        return response()->json(
+            compact('isUsernameAvailable')
+        );
     }
 }

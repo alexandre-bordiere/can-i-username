@@ -3,11 +3,13 @@
 namespace App\Integrations;
 
 use Illuminate\Support\Facades\Cache;
-use TwitchApi\HelixGuzzleClient;
+use Psr\Http\Message\ResponseInterface;
 use TwitchApi\TwitchApi;
 
 class Twitch extends Integration
 {
+    const TWITCH_TOKEN_CACHE_KEY = '';
+
     /**
      * The interface used to communicate with the Twitch API.
      *
@@ -20,16 +22,9 @@ class Twitch extends Integration
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(TwitchApi $twitchApi)
     {
-        $clientId = config('services.twitch.client_id');
-        $clientSecret = config('services.twitch.client_secret');
-
-        $this->twitchApi = new TwitchApi(
-            new HelixGuzzleClient($clientId),
-            $clientId,
-            $clientSecret
-        );
+        $this->twitchApi = $twitchApi;
     }
 
     /**
@@ -40,26 +35,41 @@ class Twitch extends Integration
      */
     public function isUsernameAvailable(string $username): bool
     {
-        if (! Cache::has('twitchToken')) {
-            $accessToken = json_decode(
-                $this->twitchApi
-                    ->getOauthApi()
-                    ->getAppAccessToken()
-                    ->getBody()
-                    ->getContents()
+        $accessToken = $this->fetchAndStoreOAuthToken();
+
+        $data = $this->transformResponseToJson(
+            $this->twitchApi->getUsersApi()->getUserByUsername($accessToken, $username)
+        );
+
+        return count($data->data) === 0;
+    }
+
+    /**
+     * Fetch an OAuth token and store it into the cache.
+     *
+     * @return string
+     */
+    protected function fetchAndStoreOAuthToken(): string
+    {
+        if (! Cache::has(self::TWITCH_TOKEN_CACHE_KEY)) {
+            $accessToken = $this->transformResponseToJson(
+                $this->twitchApi->getOauthApi()->getAppAccessToken()
             );
 
-            Cache::put('twitchToken', $accessToken->access_token, $accessToken->expires_in);
+            Cache::put(self::TWITCH_TOKEN_CACHE_KEY, $accessToken->access_token, $accessToken->expires_in);
         }
 
-        $data = json_decode(
-            $this->twitchApi
-                ->getUsersApi()
-                ->getUserByUsername(Cache::get('twitchToken'), $username)
-                ->getBody()
-                ->getContents()
-        )->data;
+        return Cache::get(self::TWITCH_TOKEN_CACHE_KEY);
+    }
 
-        return count($data) === 0;
+    /**
+     * Transform the response's data into a JSON object.
+     *
+     * @param  ResponseInterface  $response
+     * @return mixed
+     */
+    protected function transformResponseToJson(ResponseInterface $response): mixed
+    {
+        return json_decode($response->getBody()->getContents());
     }
 }
