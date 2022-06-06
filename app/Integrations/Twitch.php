@@ -3,8 +3,8 @@
 namespace App\Integrations;
 
 use Illuminate\Support\Facades\Cache;
-use Psr\Http\Message\ResponseInterface;
-use TwitchApi\TwitchApi;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
 
 class Twitch extends Integration
 {
@@ -16,25 +16,20 @@ class Twitch extends Integration
     protected string $accessToken;
 
     /**
-     * The interface used to communicate with the Twitch API.
-     *
-     * @var TwitchApi
-     */
-    protected TwitchApi $twitchApi;
-
-    /**
      * Create a new integration instance.
      *
      * @return void
      */
-    public function __construct(TwitchApi $twitchApi)
+    public function __construct()
     {
-        $this->twitchApi = $twitchApi;
-
         $this->accessToken = Cache::remember(
             'twitchAccessToken',
             3600,
-            fn () => $this->transformResponseToJson($this->twitchApi->getOauthApi()->getAppAccessToken())->access_token
+            fn () => Http::post('https://id.twitch.tv/oauth2/token', [
+                'client_id' => Config::get('services.twitch.client_id'),
+                'client_secret' => Config::get('services.twitch.client_secret'),
+                'grant_type' => 'client_credentials',
+            ])->json('access_token')
         );
     }
 
@@ -46,21 +41,12 @@ class Twitch extends Integration
      */
     public function isUsernameAvailable(string $username): bool
     {
-        $data = $this->transformResponseToJson(
-            $this->twitchApi->getUsersApi()->getUserByUsername($this->accessToken, $username)
-        );
+        $data = Http::withToken($this->accessToken)
+            ->get('https://api.twitch.tv/helix/users', ['login' => $username])
+            ->json();
 
-        return count($data->data) === 0;
-    }
+        dd($data);
 
-    /**
-     * Transform the response's data into a JSON object.
-     *
-     * @param  ResponseInterface  $response
-     * @return mixed
-     */
-    protected function transformResponseToJson(ResponseInterface $response): mixed
-    {
-        return json_decode($response->getBody()->getContents());
+        return count($data) === 0;
     }
 }
