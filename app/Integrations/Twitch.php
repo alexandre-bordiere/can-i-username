@@ -8,7 +8,12 @@ use TwitchApi\TwitchApi;
 
 class Twitch extends Integration
 {
-    const TWITCH_TOKEN_CACHE_KEY = '';
+    /**
+     * The access token used to authenticate our requests.
+     *
+     * @var string
+     */
+    protected string $accessToken;
 
     /**
      * The interface used to communicate with the Twitch API.
@@ -25,6 +30,12 @@ class Twitch extends Integration
     public function __construct(TwitchApi $twitchApi)
     {
         $this->twitchApi = $twitchApi;
+
+        $this->accessToken = Cache::remember(
+            'twitchAccessToken',
+            3600,
+            fn () => $this->transformResponseToJson($this->twitchApi->getOauthApi()->getAppAccessToken())->access_token
+        );
     }
 
     /**
@@ -35,31 +46,11 @@ class Twitch extends Integration
      */
     public function isUsernameAvailable(string $username): bool
     {
-        $accessToken = $this->fetchAndStoreOAuthToken();
-
         $data = $this->transformResponseToJson(
-            $this->twitchApi->getUsersApi()->getUserByUsername($accessToken, $username)
+            $this->twitchApi->getUsersApi()->getUserByUsername($this->accessToken, $username)
         );
 
         return count($data->data) === 0;
-    }
-
-    /**
-     * Fetch an OAuth token and store it into the cache.
-     *
-     * @return string
-     */
-    protected function fetchAndStoreOAuthToken(): string
-    {
-        if (! Cache::has(self::TWITCH_TOKEN_CACHE_KEY)) {
-            $accessToken = $this->transformResponseToJson(
-                $this->twitchApi->getOauthApi()->getAppAccessToken()
-            );
-
-            Cache::put(self::TWITCH_TOKEN_CACHE_KEY, $accessToken->access_token, $accessToken->expires_in);
-        }
-
-        return Cache::get(self::TWITCH_TOKEN_CACHE_KEY);
     }
 
     /**
