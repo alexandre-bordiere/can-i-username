@@ -3,7 +3,6 @@
 namespace App\Integrations;
 
 use App\Enums\Integration as IntegrationEnum;
-use TwitchApi\TwitchApi;
 
 class IntegrationFactory
 {
